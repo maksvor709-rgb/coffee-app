@@ -11,6 +11,27 @@ body { font-family: Arial; background:#eee; padding:20px; }
 select, button { width:100%; padding:10px; margin:10px 0; }
 .item { display:flex; justify-content:space-between; }
 .total { font-weight:bold; }
+
+input, select, button {
+  width: 100%;
+  box-sizing: border-box;
+  height: 52px;
+  font-size: 16px;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: white;
+}
+
+button {
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+}
+
 </style>
 </head>
 <body>
@@ -18,9 +39,15 @@ select, button { width:100%; padding:10px; margin:10px 0; }
 <div class="card">
 <h2>☕ Акт ремонту кавоварок</h2>
 
+<input id="model" placeholder="Модель кавоварки" style="width:100%;padding:10px;">
+<input id="sn" placeholder="Індивідуальний номер" style="width:100%;padding:10px;">
+
+
+<div id="machineInfo" style="padding:10px;background:#f5f5f5;margin-top:10px;"></div>
+
 <select id="service"></select>
 
-<input id="qty" type="number" min="1" value="1" style="width:92%;padding:10px;font-size:16px;">
+<input id="qty" type="number" min="1" value="1" style="width:100%;padding:10px;font-size:16px;">
 
 <button onclick="addService()">➕ Додати</button>
 
@@ -34,66 +61,140 @@ select, button { width:100%; padding:10px; margin:10px 0; }
 <p>Ти (49%): <span id="me">0</span> грн</p>
 <p>Компанія (51%): <span id="company">0</span> грн</p>
 <p style="font-weight:bold;color:green;">
-Мій заробіток за місяць: <span id="monthTotal">0</span> грн
+Мій заробіток за місяць: <span id="monthTotal">0</span> 
 </p>
 <button onclick="resetMonth()" style="background:#c00;color:white;">
 🔄 Обнулити мій заробіток
 </button>
+
+<select id="machineSelect"> </select>
+
+<input id="searchSN" placeholder="🔍 Серійний номер" style="width:100%;padding:10px;">
+<button onclick="searchMachine()">Знайти</button>
+
+<button onclick="deleteMachine()" style="background:#b00000;color:white;">
+🗑 Видалити цю кавоварку
+</button>
+
 </div>
 
 <script>
 
-function resetMonth(){
-  if(!confirm("Обнулити мій заробіток за цей місяць?")) return;
+function deleteMachine(){
+  var sn = document.getElementById("searchSN").value.trim();
+  if(!sn) return alert("Введіть серійний номер");
 
-  const now = new Date();
-  const m = now.getMonth();
-  const y = now.getFullYear();
+  var m = machines.find(x => x.id === sn);
+  if(!m) return alert("Кавоварку не знайдено");
 
-  saved = saved.filter(a=>{
-    const d = new Date(a.date);
-    return !(d.getMonth()===m && d.getFullYear()===y);
-  });
+  if(!confirm("Видалити кавоварку "+m.model+" ("+sn+") та всю її історію?")) return;
 
+  machines = machines.filter(x => x.id !== sn);
+  saved = saved.filter(a => a.machine !== sn);
+
+  localStorage.setItem("machines", JSON.stringify(machines));
   localStorage.setItem("acts", JSON.stringify(saved));
+
+  document.getElementById("machineHistory").innerHTML = "";
+  document.getElementById("searchSN").value = "";
+
+  alert("Кавоварку видалено");
+}
+
+function resetMonth(){
+  if(!confirm("Обнулити тільки заробіток за місяць?")) return;
+
+  myMonth = 0;
+  localStorage.setItem("myMonth", "0");
   updateMonthTotal();
 
-  alert("Місяць обнулено");
+  alert("Місячний заробіток обнулено. Історія ремонтів збережена.");
 }
 
 let month = new Date().getMonth(); // поточний місяць
 
 let saved = JSON.parse(localStorage.getItem("acts") || "[]");
 
-function saveAct(){
-  const myPart = Math.round(total * 0.49);
-  if(total === 0) return alert("Акт порожній");
+let myMonth = Number(localStorage.getItem("myMonth") || 0);
 
-  saved.push({
-    date: new Date().toISOString(),
-    my: myPart
-  });
+let machines = JSON.parse(localStorage.getItem("machines") || "[]");
 
-  localStorage.setItem("acts", JSON.stringify(saved));
+function saveMachine(){
+  const model = document.getElementById("model").value.trim();
+  const sn = document.getElementById("sn").value.trim();
+  if(!model || !sn) return alert("Введи модель і номер");
 
-  alert("Акт збережено");
-  updateMonthTotal();
+  let existing = machines.find(m => m.id === sn);
+  if(existing){
+    existing.model = model;
+  } else {
+    machines.push({id:sn, model:model, lastRepair:""});
+  }
+
+  localStorage.setItem("machines", JSON.stringify(machines));
+  updateMachineSelect();
+  alert("Кавоварку збережено");
 }
 
-function updateMonthTotal(){
-  const now = new Date();
-  const m = now.getMonth();
-  const y = now.getFullYear();
+function updateMachineSelect(){
+  const sel = document.getElementById("machineSelect");
+  sel.innerHTML = "<option value=''>Оберіть кавоварку</option>";
+  machines.forEach(m=>{
+    let o = document.createElement("option");
+    o.value = m.id;
+    o.textContent = m.model + " (" + m.id + ")" + (m.lastRepair ? " | останній: "+m.lastRepair : "");
+    sel.appendChild(o);
+  });
+}
+updateMachineSelect();
 
-  let sum = 0;
-  saved.forEach(a=>{
-    const d = new Date(a.date);
-    if(d.getMonth()===m && d.getFullYear()===y){
-      sum += a.my;
-    }
+function saveAct(){
+  if(total === 0) return alert("Акт порожній");
+
+  var model = document.getElementById("model").value.trim();
+  var sn = document.getElementById("sn").value.trim();
+
+  if(!model || !sn){
+    return alert("Введіть модель і серійний номер кавоварки");
+  }
+
+  var today = new Date().toISOString().split("T")[0];
+  var myPart = Math.round(total * 0.49);
+
+  myMonth += myPart;
+  localStorage.setItem("myMonth", myMonth);
+  // знайти або створити кавоварку
+  var m = machines.find(function(x){ return x.id === sn; });
+
+  if(!m){
+    m = { id: sn, model: model, lastRepair: "" };
+    machines.push(m);
+  } else {
+    m.model = model; // якщо модель змінилась — оновлюємо
+  }
+
+  // оновлюємо дату останнього ремонту
+  m.lastRepair = today;
+
+  // додаємо акт
+  saved.push({
+    date: today,
+    my: myPart,
+    machine: sn
   });
 
-  document.getElementById("monthTotal").textContent = sum;
+  localStorage.setItem("machines", JSON.stringify(machines));
+  localStorage.setItem("acts", JSON.stringify(saved));
+
+  // оновити історію якщо ця кавоварка відкрита
+  document.getElementById("searchSN").value = sn;
+  searchMachine();
+
+  updateMonthTotal();
+  alert("Акт додано до історії кавоварки");
+}
+function updateMonthTotal(){
+  document.getElementById("monthTotal").innerText = myMonth + " грн";
 }
 
 // при старті
@@ -117,7 +218,7 @@ const services = [
   {name:"Заміна/ремонт електродвигуна", price:165},
   {name:"Назва напою(заміна)", price:100},
   {name:"Повна декальцинація", price:220},
-  {name:"Покраска", price:1300},
+  {name:"Покраска", price:130},
   {name:"Програмування", price:250},
   {name:"Програмування вендингового апарату", price:450},
   {name:"Ремонт блоку заварювання", price:165},
@@ -133,7 +234,7 @@ const services = [
   {name:"Ремонт/заміна/чищення помпи(насосу)", price:165},
   {name:"Ремонт/заміна/чищення редуктора", price:190},
   {name:"Ремонт/чищення/заміна кавомолки", price:170},
-  {name:"Ремонт/заміна/чищення трубок та лічильника води", price:90},
+  {name:"Ремонт/заміна/чищення трубок та лічильника води", price:80},
   {name:"Ремонт/чищення бункера/контейнера/міксера", price:105},
   {name:"Ремлонт/чищення корпуса", price:105},
   {name:"Ремонт/чищення мультиклапана", price:260},
@@ -203,12 +304,56 @@ function clearAct(){
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
+  
+function searchMachine(){
+  try {
+    var sn = document.getElementById("searchSN").value.trim();
+    if(!sn){
+      document.getElementById("machineInfo").innerHTML = "";
+      document.getElementById("machineHistory").innerHTML = "";
+      return;
+    }
+
+    var m = machines.find(function(x){
+      return x.id === sn;
+    });
+
+    if(!m){
+      document.getElementById("machineHistory").innerHTML = "❌ Кавоварку не знайдено";
+      return;
+    }
+
+    var history = saved.filter(function(a){
+      return a.machine === sn;
+    });
+
+    var html = "";
+    html += "<b>Модель:</b> " + m.model + "<br>";
+    html += "<b>Серійний №:</b> " + m.id + "<br>";
+    html += "<b>Останній ремонт:</b> " + (m.lastRepair || "—") + "<br>";
+    html += "<hr>";
+    html += "<b>Історія ремонтів:</b><br>";
+
+    if(history.length === 0){
+      html += "Немає записів";
+    } else {
+      history.forEach(function(a){
+        html += "📅 " + a.date + " — 💰 " + a.my + " грн<br>";
+      });
+    }
+
+    document.getElementById("machineHistory").innerHTML = html;
+
+  } catch(e){
+    alert("Помилка пошуку: " + e.message);
+  }
+}
+
 </script>
 
+<hr>
+<h3>📜 Історія цієї кавоварки</h3>
+<div id="machineHistory" style="padding:10px;background:#f5f5f5;"></div>
+
 </body>
-
 </html>
-
-
-
-
