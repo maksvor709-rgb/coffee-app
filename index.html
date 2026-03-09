@@ -42,7 +42,6 @@ button {
 <input id="model" placeholder="Модель кавоварки" style="width:100%;padding:10px;">
 <input id="sn" placeholder="Індивідуальний номер" style="width:100%;padding:10px;">
 
-
 <div id="machineInfo" style="padding:10px;background:#f5f5f5;margin-top:10px;"></div>
 
 <select id="service"></select>
@@ -50,6 +49,9 @@ button {
 <input id="qty" type="number" min="1" value="1" style="width:100%;padding:10px;font-size:16px;">
 
 <button onclick="addService()">➕ Додати</button>
+
+<input id="serviceCodes" placeholder="Коди послуг">
+<button onclick="addCodes()">Додати коди</button>
 
 <button onclick="clearAct()">🗑 Очистити акт</button>
 
@@ -77,6 +79,23 @@ button {
 <button onclick="resetMonth()" style="background:#c00;color:white;">
 🔄 Обнулити мій заробіток
 </button>
+
+
+
+<hr>
+<h3>💵 Виплати</h3>
+
+<input id="payAmount" type="number" placeholder="Сума виплати">
+
+<button onclick="addPayment()">➕ Додати виплату</button>
+
+<p><b>Залишок:</b> <span id="balance">0</span> грн</p>
+
+<button onclick="resetPayments()" style="background:#555;color:white;">
+🔄 Обнулити виплати
+</button>
+
+<div id="paymentsHistory" style="margin-top:10px;background:#f5f5f5;padding:10px;"></div>
 
 <select id="machineSelect"> </select>
 
@@ -213,71 +232,74 @@ document.getElementById("qty").value = 1;
 document.getElementById("model").value = "";
 document.getElementById("sn").value = "";
 select.selectedIndex = 0;
+updateBalance();
+
 }
 function updateMonthTotal(){
   document.getElementById("monthTotal").innerText = myMonth + " грн";
+  
 }
 
 // при старті
 updateMonthTotal();
 
 const services = [
-  {name:"Виїзд майстра", price:300},
-  {name:"Встановлення штекера 220В", price:70},
-  {name:"Встановлення/демонтаж плати управління", price:155},
-  {name:"Встановлення/заміні/ремонт лічильника порцій", price:170},
-  {name:"Дизинфекція кавомашини", price:100},
-  {name:"Діагностика", price:130},
-  {name:"Заміна бойлера/тен", price:200},
-  {name:"Заміна корпуса кавоварки", price:400},
-  {name:"Заміна ножів", price:165},
-  {name:"Заміна термозапобіжника", price:90},
-  {name:"Заміна ущільнювачів", price:105},
-  {name:"Заміна хомутів силіконових труб", price:115},
-  {name:"Заміна/встановлення/чищення фільтра", price:90},
-  {name:"Заміна/ремонт дверей", price:95},
-  {name:"Заміна/ремонт електродвигуна", price:165},
-  {name:"Назва напою(заміна)", price:100},
-  {name:"Повна декальцинація", price:220},
-  {name:"Покраска", price:130},
-  {name:"Програмування", price:250},
-  {name:"Програмування вендингового апарату", price:450},
-  {name:"Ремонт блоку заварювання", price:165},
-  {name:"Ремонт блоку заварювання суперавтомата", price:290},
-  {name:"Ремонт бойлера", price:200},
-  {name:"Ремонт/встановлення/заміна мікровимикача", price:90},
-  {name:"Ремонт/заміна сигнального шлейфу", price:200},
-  {name:"Ремонт/заміна трубки високого тиску", price:70},
-  {name:"Ремонт/заміна/чищення диспенсера", price:80},
-  {name:"Ремонт/заміна/чищення дозатора", price:105},
-  {name:"Ремонт/заміна/чищення крану води/пару", price:115},
-  {name:"Ремонт/заміна/чищення плати управління", price:300},
-  {name:"Ремонт/заміна/чищення помпи(насосу)", price:165},
-  {name:"Ремонт/заміна/чищення редуктора", price:190},
-  {name:"Ремонт/чищення/заміна кавомолки", price:170},
-  {name:"Ремонт/заміна/чищення трубок та лічильника води", price:80},
-  {name:"Ремонт/чищення бункера/контейнера/міксера", price:105},
-  {name:"Ремлонт/чищення корпуса", price:105},
-  {name:"Ремонт/чищення мультиклапана", price:260},
-  {name:"Ремонт/чищення носика бойлера", price:80},
-  {name:"Ремонт/чищення/встановлення клапану", price:115},
-  {name:"Ремонт/чищення/налаштування капучінатора", price:105},
-  {name:"Фарбування суперавтомата", price:170},
-  {name:"Хімічна декальцинація", price:120},
-  {name:"Чищення блоку заварювання", price:125},
-  {name:"Чищення бункера/контейнера/міксера суперавтомата", price:620},
-  {name:"Чищення корпусу суперавтомата", price:210},
-  {name:"Встановлення/демонтаж(проф)", price:165},
-  {name:"Діагностика професійної кавоварки", price:170},
-  {name:"Заміна манометра", price:170},
-  {name:"Налаштування (проф)", price:150},
-  {name:"Повна декальцинація 1-постової машини", price:2100},
-  {name:"Повна декальцинація 2-постової машини", price:2600},
-  {name:"Повна декальцинація 3-постової машини", price:3200},
-  {name:"Ремонт/заміна/чищення трубок та лічильника води (проф)", price:155},
-  {name:"Ремонт/чищення електорклапану (проф)", price:155},
-  {name:"Ремонт/чищення холдера", price:90},
-  {name:"Чищення групи заварювання", price:170}
+  {code:516, name:"Виїзд майстра", price:300},
+  {code:1649, name:"Встановлення штекера 220В", price:70},
+  {code:1307, name:"Встановлення/демонтаж плати управління", price:155},
+  {code:483, name:"Встановлення/заміні/ремонт лічильника порцій", price:170},
+  {code:1734, name:"Дизинфекція кавомашини", price:100},
+  {code:484, name:"Діагностика", price:130},
+  {code:1596, name:"Заміна бойлера/тен", price:200},
+  {code:485, name:"Заміна корпуса кавоварки", price:400},
+  {code:1632, name:"Заміна ножів", price:165},
+  {code:486, name:"Заміна термозапобіжника", price:90},
+  {code:487, name:"Заміна ущільнювачів", price:105},
+  {code:488, name:"Заміна хомутів силіконових труб", price:115},
+  {code:489, name:"Заміна/встановлення/чищення фільтра", price:90},
+  {code:490, name:"Заміна/ремонт дверей", price:95},
+  {code:491, name:"Заміна/ремонт електродвигуна", price:165},
+  {code:1728, name:"Назва напою(заміна)", price:100},
+  {code:495, name:"Повна декальцинація", price:220},
+  {code:496, name:"Покраска", price:130},
+  {code:1416, name:"Програмування", price:250},
+  {code:497, name:"Програмування вендингового апарату", price:450},
+  {code:498, name:"Ремонт блоку заварювання", price:165},
+  {code:524, name:"Ремонт блоку заварювання суперавтомата", price:290},
+  {code:501, name:"Ремонт бойлера", price:200},
+  {code:499, name:"Ремонт/встановлення/заміна мікровимикача", price:90},
+  {code:1169, name:"Ремонт/заміна сигнального шлейфу", price:200},
+  {code:502, name:"Ремонт/заміна трубки високого тиску", price:70},
+  {code:500, name:"Ремонт/заміна/чищення диспенсера", price:80},
+  {code:504, name:"Ремонт/заміна/чищення дозатора", price:105},
+  {code:494, name:"Ремонт/заміна/чищення крану води/пару", price:115},
+  {code:493, name:"Ремонт/заміна/чищення плати управління", price:300},
+  {code:505, name:"Ремонт/заміна/чищення помпи(насосу)", price:165},
+  {code:503, name:"Ремонт/заміна/чищення редуктора", price:190},
+  {code:506, name:"Ремонт/чищення/заміна кавомолки", price:170},
+  {code:507, name:"Ремонт/заміна/чищення трубок та лічильника води", price:80},
+  {code:508, name:"Ремонт/чищення бункера/контейнера/міксера", price:105},
+  {code:1306, name:"Ремонт/чищення корпуса", price:105},
+  {code:509, name:"Ремонт/чищення мультиклапана", price:260},
+  {code:510, name:"Ремонт/чищення носика бойлера", price:80},
+  {code:511, name:"Ремонт/чищення/встановлення клапану", price:115},
+  {code:512, name:"Ремонт/чищення/налаштування капучінатора", price:105},
+  {code:1709, name:"Фарбування суперавтомата", price:170},
+  {code:514, name:"Хімічна декальцинація", price:120},
+  {code:515, name:"Чищення блоку заварювання", price:125},
+  {code:1305, name:"Чищення бункера/контейнера/міксера суперавтомата", price:620},
+  {code:1707, name:"Чищення корпусу суперавтомата", price:210},
+  {code:519, name:"Встановлення/демонтаж(проф)", price:165},
+  {code:1309, name:"Діагностика професійної кавоварки", price:170},
+  {code:1310, name:"Заміна манометра", price:170},
+  {code:520, name:"Налаштування (проф)", price:150},
+  {code:523, name:"Повна декальцинація 1-постової машини", price:2100},
+  {code:522, name:"Повна декальцинація 2-постової машини", price:2600},
+  {code:1051, name:"Повна декальцинація 3-постової машини", price:3200},
+  {code:1881, name:"Ремонт/заміна/чищення трубок та лічильника води (проф)", price:155},
+  {code:1308, name:"Ремонт/чищення електорклапану (проф)", price:155},
+  {code:526, name:"Ремонт/чищення холдера", price:90},
+  {code:525, name:"Чищення групи заварювання", price:170}
 ];
 
 let total = 0;
@@ -288,8 +310,9 @@ select.innerHTML = "<option value='0'>Оберіть послугу</option>";
 services.forEach(s=>{
   const opt = document.createElement("option");
   opt.value = s.price;
-  opt.textContent = s.name + " — " + s.price + " грн";
+  opt.textContent = s.code + " | " + s.name + " — " + s.price + " грн";
   select.appendChild(opt);
+
 });
 
 function addService(){
@@ -401,9 +424,16 @@ function searchMachine(){
     if(history.length === 0){
       html += "Немає записів";
     } else {
-      history.forEach(function(a){
-        html += "📅 " + a.date + " — 💰 " + a.my + " грн<br>";
-      });
+     history.forEach(function(a, i){
+
+   html +=` 
+<div style="display:flex;justify-content:space-between;align-items:center;">
+<span>📅 ${a.date} — 💰 ${a.my} грн</span>
+<button onclick="deleteRepair('${sn}', ${i})"style="font-size:12px;padding:2px 6px;">❌</button>
+</div>
+`;
+
+});
     }
 
     document.getElementById("machineHistory").innerHTML = html;
@@ -412,6 +442,254 @@ function searchMachine(){
     alert("Помилка пошуку: " + e.message);
   }
 }
+
+// ===== ВИПЛАТИ =====
+
+let payments = JSON.parse(localStorage.getItem("payments") || "[]");
+
+function updateBalance(){
+
+  const balanceEl = document.getElementById("balance");
+
+  if(!balanceEl) return;
+
+  let totalPaid = payments.reduce((sum,p)=>sum + p.amount, 0);
+
+  let balance = myMonth - totalPaid;
+
+  if(balance < 0) balance = 0;
+
+  balanceEl.innerText = balance;
+}
+
+function renderPayments(){
+
+  const div = document.getElementById("paymentsHistory");
+  if(!div) return;
+
+  if(payments.length === 0){
+    div.innerHTML = "Немає виплат";
+    return;
+  }
+
+  let html = `
+  <table style="width:100%;border-collapse:collapse;">
+    <tr style="background:#ddd;">
+      <th>№</th>
+      <th>Дата</th>
+      <th>Сума</th>
+      <th>Видалити</th>
+    </tr>
+  `;
+
+  payments.forEach((p,i)=>{
+    html += `
+    <tr style="border-bottom:1px solid #ccc;">
+      <td>${i+1}</td>
+      <td>${p.date}</td>
+      <td>${p.amount} грн</td>
+      <td>
+        <button onclick="deletePayment(${i})">
+        ❌
+        </button>
+      </td>
+    </tr>
+    `;
+  });
+
+  html += "</table>";
+
+  div.innerHTML = html;
+}
+
+function addPayment(){
+  let amount = Number(document.getElementById("payAmount").value);
+  if(amount <= 0) return alert("Введи суму");
+
+  let today = new Date().toISOString().split("T")[0];
+
+  payments.push({
+    date: today,
+    amount: amount
+  });
+
+  localStorage.setItem("payments", JSON.stringify(payments));
+
+  document.getElementById("payAmount").value = "";
+
+  renderPayments();
+  updateBalance();
+}
+
+function resetPayments(){
+  if(!confirm("Обнулити тільки виплати?")) return;
+
+  payments = [];
+  localStorage.setItem("payments", "[]");
+
+  renderPayments();
+  updateBalance();
+}
+
+// оновлюємо після старту
+renderPayments();
+updateBalance();
+
+/* ===== ВИПЛАТИ (безпечний блок) ===== */
+
+(function(){
+
+let payments = JSON.parse(localStorage.getItem("payments") || "[]");
+
+function getBalance(){
+  let totalPaid = payments.reduce((s,p)=>s+p.amount,0);
+  let balance = myMonth - totalPaid;
+  if(balance < 0) balance = 0;
+  return balance;
+}
+
+function updateBalance(){
+  const el = document.getElementById("balance");
+  if(!el) return;
+  el.innerText = getBalance();
+}
+
+
+window.addPayment = function(){
+
+  let input = document.getElementById("payAmount");
+  if(!input) return;
+
+  let amount = Number(input.value);
+
+  if(amount <= 0){
+    alert("Введи суму");
+    return;
+  }
+
+  let today = new Date().toISOString().split("T")[0];
+
+  payments.push({
+    date: today,
+    amount: amount
+  });
+
+  localStorage.setItem("payments", JSON.stringify(payments));
+
+  input.value = "";
+
+  renderPayments();
+  updateBalance();
+}
+
+window.resetPayments = function(){
+
+  if(!confirm("Обнулити виплати?")) return;
+
+  payments = [];
+
+  localStorage.setItem("payments","[]");
+
+  renderPayments();
+  updateBalance();
+}
+
+renderPayments();
+updateBalance();
+
+})();
+
+window.deletePayment = function(i){
+
+  if(!confirm("Видалити виплату?")) return;
+
+  payments.splice(i,1);
+
+  localStorage.setItem("payments", JSON.stringify(payments));
+
+  renderPayments();
+  updateBalance();
+}
+
+function addByCode(){
+
+let code = Number(document.getElementById("serviceCode").value);
+
+if(!code) return;
+
+let service = services.find(s => s.code === code);
+
+if(!service){
+  alert("Код не знайдено");
+  return;
+}
+
+currentAct.push({
+  name: service.name,
+  price: service.price,
+  qty: 1
+});
+
+renderTable();
+
+document.getElementById("serviceCode").value = "";
+
+}
+
+function addCodes(){
+
+let input = document.getElementById("serviceCodes").value;
+
+if(!input) return;
+
+let codes = input.split(/[\s,]+/); // розділяє по пробілу або комі
+
+codes.forEach(c => {
+
+let code = Number(c);
+
+let service = services.find(s => s.code === code);
+
+if(service){
+
+currentAct.push({
+name: service.name,
+price: service.price,
+qty: 1
+});
+
+}
+
+});
+
+renderTable();
+
+document.getElementById("serviceCodes").value = "";
+
+}
+
+function deleteRepair(sn, index){
+
+if(!confirm("Видалити цей ремонт?")) return;
+
+let acts = JSON.parse(localStorage.getItem("acts") || "[]");
+
+let machineActs = acts.filter(a => a.machine === sn);
+
+let actToDelete = machineActs[index];
+
+acts = acts.filter(a => !(a.machine === sn && a.date === actToDelete.date && a.my === actToDelete.my));
+
+localStorage.setItem("acts", JSON.stringify(acts));
+
+saved = acts;
+
+searchMachine();
+
+}
+
+renderPayments();
+updateBalance();
 
 </script>
 
