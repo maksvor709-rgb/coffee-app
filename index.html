@@ -32,6 +32,113 @@ button {
   border: 1px solid #ccc;
 }
 
+
+.fab-container{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  z-index:1000;
+}
+
+/* основна кнопка */
+.fab{
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  border:none;
+  color:#fff;
+  font-size:22px;
+  background:#6C63FF;
+  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+  cursor:pointer;
+  transition:0.3s;
+}
+
+/* додаткові кнопки */
+.fab-item{
+  display:none;
+  background:#4CAF50;
+}
+
+/* при відкритті */
+.fab-container.active .fab-item{
+  display:block;
+}
+
+/* ефект натискання */
+.fab:active{
+  transform:scale(0.9);
+}
+
+/* контейнер */
+.fab-container{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  z-index:1000;
+}
+
+/* всі кнопки */
+.fab{
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  border:none;
+  color:#fff;
+  font-size:22px;
+  background:#6C63FF;
+  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+  cursor:pointer;
+  transition:0.3s;
+}
+
+/* головна кнопка */
+.fab-main{
+  z-index:2;
+}
+
+/* додаткові кнопки */
+.fab-item{
+  position:absolute;
+  bottom:0;
+  opacity:0;
+  transform:translateY(0) scale(0.5);
+  pointer-events:none;
+}
+
+/* при відкритті — анімація */
+.fab-container.active .fab-item{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* розліт кнопок */
+.fab-container.active .fab-item:nth-child(2){
+  transform:translateY(-70px) scale(1);
+}
+
+.fab-container.active .fab-item:nth-child(3){
+  transform:translateY(-140px) scale(1);
+}
+
+/* анімація + → × */
+.fab-container.active .fab-main{
+  transform:rotate(45deg);
+}
+
+/* натискання */
+.fab:active{
+  transform:scale(0.9);
+}
+
+
 </style>
 </head>
 <body>
@@ -80,7 +187,39 @@ button {
 🔄 Обнулити мій заробіток
 </button>
 
+<button onclick="openChart()" class="fab">📊</button>
+<div id="chartModal" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+z-index:999;
+">
 
+  <div style="
+  background:#fff;
+  padding:15px;
+  width:95%;
+  max-width:500px;
+  border-radius:15px;
+  ">
+
+    <h3>📊 Графік заробітку</h3>
+
+    <canvas id="incomeChart"></canvas>
+
+    <button onclick="closeChart()" style="margin-top:10px;width:100%;">
+      Закрити
+    </button>
+
+  </div>
+
+</div>
 
 <hr>
 <h3>💵 Виплати</h3>
@@ -96,6 +235,8 @@ button {
 </button>
 
 <div id="paymentsHistory" style="margin-top:10px;background:#f5f5f5;padding:10px;"></div>
+
+
 
 <select id="machineSelect"> </select>
 
@@ -139,7 +280,7 @@ function resetMonth(){
   localStorage.setItem("acts", JSON.stringify([]));
 saved = [];
   updateMonthTotal();
-  updateBalance();
+  
   alert("Місячний заробіток обнулено. Історія ремонтів збережена.");
 }
 
@@ -750,6 +891,64 @@ function closeAct(){
   document.getElementById("actModal").style.display = "none";
 }
 
+function openChart(){
+  document.getElementById("chartModal").style.display = "flex";
+  drawChart(); // малюємо графік при відкритті
+}
+
+function closeChart(){
+  document.getElementById("chartModal").style.display = "none";
+}
+
+function drawChart(){
+
+let acts = JSON.parse(localStorage.getItem("acts") || "[]");
+
+let dataByDate = {};
+
+acts.forEach(a=>{
+  if(!dataByDate[a.date]){
+    dataByDate[a.date] = 0;
+  }
+  dataByDate[a.date] += Number(a.my || 0);
+});
+
+let labels = Object.keys(dataByDate);
+let data = Object.values(dataByDate);
+
+if(window.myChart){
+  window.myChart.destroy();
+}
+
+const ctx = document.getElementById('incomeChart');
+
+window.myChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: 'Заробіток',
+      data: data,
+      tension: 0.3
+    }]
+  },
+  options: {
+    responsive:true,
+    plugins:{ legend:{display:false} }
+  }
+});
+}
+
+function toggleFab(){
+  document.querySelector(".fab-container").classList.toggle("active");
+}
+
+function scrollToHistory(){
+  document.getElementById("machineInfo").scrollIntoView({
+    behavior:"smooth"
+  });
+}
+
 </script>
 
 <hr>
@@ -789,6 +988,50 @@ z-index:999;
 
 </div>
 
+<div id="chartModal" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+z-index:999;
+">
+
+  <div style="
+  background:#fff;
+  padding:15px;
+  width:95%;
+  max-width:500px;
+  border-radius:15px;
+  ">
+
+    <h3>📊 Графік заробітку</h3>
+
+    <canvas id="incomeChart"></canvas>
+
+    <button onclick="closeChart()" style="margin-top:10px;width:100%;">
+      Закрити
+    </button>
+
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="fab-container">
+
+  <button class="fab fab-main" onclick="toggleFab()">➕</button>
+
+  <button class="fab fab-item" onclick="openChart()">📊</button>
+
+  <button class="fab fab-item" onclick="scrollToHistory()">📜</button>
+
+</div>
 
 </body>
 </html>
