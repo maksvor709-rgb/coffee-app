@@ -136,8 +136,10 @@ function resetMonth(){
 
   myMonth = 0;
   localStorage.setItem("myMonth", "0");
+  localStorage.setItem("acts", JSON.stringify([]));
+saved = [];
   updateMonthTotal();
-
+  updateBalance();
   alert("Місячний заробіток обнулено. Історія ремонтів збережена.");
 }
 
@@ -210,9 +212,9 @@ function saveAct(){
   saved.push({
     date: today,
     my: myPart,
-    machine: sn
+    machine: sn,
+    works: JSON.parse(JSON.stringify(currentAct))
   });
-
   localStorage.setItem("machines", JSON.stringify(machines));
   localStorage.setItem("acts", JSON.stringify(saved));
 
@@ -244,62 +246,63 @@ function updateMonthTotal(){
 updateMonthTotal();
 
 const services = [
-  {code:516, name:"Виїзд майстра", price:300},
-  {code:1649, name:"Встановлення штекера 220В", price:70},
-  {code:1307, name:"Встановлення/демонтаж плати управління", price:155},
-  {code:483, name:"Встановлення/заміні/ремонт лічильника порцій", price:170},
-  {code:1734, name:"Дизинфекція кавомашини", price:100},
-  {code:484, name:"Діагностика", price:130},
-  {code:1596, name:"Заміна бойлера/тен", price:200},
-  {code:485, name:"Заміна корпуса кавоварки", price:400},
-  {code:1632, name:"Заміна ножів", price:165},
-  {code:486, name:"Заміна термозапобіжника", price:90},
-  {code:487, name:"Заміна ущільнювачів", price:105},
-  {code:488, name:"Заміна хомутів силіконових труб", price:115},
-  {code:489, name:"Заміна/встановлення/чищення фільтра", price:90},
-  {code:490, name:"Заміна/ремонт дверей", price:95},
-  {code:491, name:"Заміна/ремонт електродвигуна", price:165},
-  {code:1728, name:"Назва напою(заміна)", price:100},
-  {code:495, name:"Повна декальцинація", price:220},
-  {code:496, name:"Покраска", price:130},
-  {code:1416, name:"Програмування", price:250},
-  {code:497, name:"Програмування вендингового апарату", price:450},
-  {code:498, name:"Ремонт блоку заварювання", price:165},
-  {code:524, name:"Ремонт блоку заварювання суперавтомата", price:290},
-  {code:501, name:"Ремонт бойлера", price:200},
-  {code:499, name:"Ремонт/встановлення/заміна мікровимикача", price:90},
-  {code:1169, name:"Ремонт/заміна сигнального шлейфу", price:200},
-  {code:502, name:"Ремонт/заміна трубки високого тиску", price:70},
-  {code:500, name:"Ремонт/заміна/чищення диспенсера", price:80},
-  {code:504, name:"Ремонт/заміна/чищення дозатора", price:105},
-  {code:494, name:"Ремонт/заміна/чищення крану води/пару", price:115},
-  {code:493, name:"Ремонт/заміна/чищення плати управління", price:300},
-  {code:505, name:"Ремонт/заміна/чищення помпи(насосу)", price:165},
-  {code:503, name:"Ремонт/заміна/чищення редуктора", price:190},
-  {code:506, name:"Ремонт/чищення/заміна кавомолки", price:170},
-  {code:507, name:"Ремонт/заміна/чищення трубок та лічильника води", price:80},
-  {code:508, name:"Ремонт/чищення бункера/контейнера/міксера", price:105},
-  {code:1306, name:"Ремонт/чищення корпуса", price:105},
-  {code:509, name:"Ремонт/чищення мультиклапана", price:260},
-  {code:510, name:"Ремонт/чищення носика бойлера", price:80},
-  {code:511, name:"Ремонт/чищення/встановлення клапану", price:115},
-  {code:512, name:"Ремонт/чищення/налаштування капучінатора", price:105},
-  {code:1709, name:"Фарбування суперавтомата", price:170},
-  {code:514, name:"Хімічна декальцинація", price:120},
-  {code:515, name:"Чищення блоку заварювання", price:125},
-  {code:1305, name:"Чищення бункера/контейнера/міксера суперавтомата", price:620},
-  {code:1707, name:"Чищення корпусу суперавтомата", price:210},
-  {code:519, name:"Встановлення/демонтаж(проф)", price:165},
-  {code:1309, name:"Діагностика професійної кавоварки", price:170},
-  {code:1310, name:"Заміна манометра", price:170},
-  {code:520, name:"Налаштування (проф)", price:150},
-  {code:523, name:"Повна декальцинація 1-постової машини", price:2100},
-  {code:522, name:"Повна декальцинація 2-постової машини", price:2600},
-  {code:1051, name:"Повна декальцинація 3-постової машини", price:3200},
-  {code:1881, name:"Ремонт/заміна/чищення трубок та лічильника води (проф)", price:155},
-  {code:1308, name:"Ремонт/чищення електорклапану (проф)", price:155},
-  {code:526, name:"Ремонт/чищення холдера", price:90},
-  {code:525, name:"Чищення групи заварювання", price:170}
+  {code:516, code2:2004, name:"Виїзд майстра", price:300},
+  {code:1649, code2:2005, name:"Встановлення штекера 220В", price:70},
+  {code:1307, code2:2006, name:"Встановлення/демонтаж плати управління", price:155},
+  {code:483, code2:2007, name:"Встановлення/заміні/ремонт лічильника порцій", price:170},
+  {code:1734,code2:2008, name:"Дизинфекція кавомашини", price:100},
+  {code:484, code2:2009, name:"Діагностика", price:130},
+  {code:1596, code2:2011, name:"Заміна бойлера/тен", price:200},
+  {code:485, code2:2012, name:"Заміна корпуса кавоварки", price:400},
+  {code:1632, code2:2013, name:"Заміна ножів", price:165},
+  {code:486, code2:2014, name:"Заміна термозапобіжника", price:90},
+  {code:487, code2:2015, name:"Заміна ущільнювачів", price:105},
+  {code:488, code2:2016, name:"Заміна хомутів силіконових труб", price:115},
+  {code:489, code2:2017, name:"Заміна/встановлення/чищення фільтра", price:90},
+  {code:490, code2:2018, name:"Заміна/ремонт дверей", price:95},
+  {code:491, code2:2019, name:"Заміна/ремонт електродвигуна", price:165},
+  {code:1728, code2:2020, name:"Назва напою(заміна)", price:100},
+  {code:495, code2:2022, name:"Повна декальцинація", price:220},
+  {code:496, code2:2023, name:"Покраска", price:130},
+  {code:1416, code2:2024, name:"Програмування", price:250},
+  {code:497, code2:2025, name:"Програмування вендингового апарату", price:450},
+  {code:498, code2:2026, name:"Ремонт блоку заварювання", price:165},
+  {code:524, code2:2063, name:"Ремонт блоку заварювання суперавтомата", price:290},
+  {code:501, code2:2027, name:"Ремонт бойлера", price:200},
+  {code:499, code2:2028, name:"Ремонт/встановлення/заміна мікровимикача", price:90},
+  {code:1169, code2:2029, name:"Ремонт/заміна сигнального шлейфу", price:200},
+  {code:502, code2:2030, name:"Ремонт/заміна трубки високого тиску", price:70},
+  {code:500, code2:2031, name:"Ремонт/заміна/чищення диспенсера", price:80},
+  {code:504, code2:2032, name:"Ремонт/заміна/чищення дозатора", price:105},
+  {code:494, code2:2033, name:"Ремонт/заміна/чищення крану води/пару", price:115},
+  {code:493, code2:2034, name:"Ремонт/заміна/чищення плати управління", price:300},
+  {code:505, code2:2036, name:"Ремонт/заміна/чищення помпи(насосу)", price:165},
+  {code:503, code2:2037, name:"Ремонт/заміна/чищення редуктора", price:190},
+  {code:506, code2:2038, name:"Ремонт/чищення/заміна кавомолки", price:170},
+  {code:507, code2:2039, name:"Ремонт/заміна/чищення трубок та лічильника води", price:80},
+  {code:508, code2:2040, name:"Ремонт/чищення бункера/контейнера/міксера", price:105},
+  {code:1306, code2:2041, name:"Ремонт/чищення корпуса", price:105},
+  {code:509, code2:2042, name:"Ремонт/чищення мультиклапана", price:260},
+  {code:510, code2:2043, name:"Ремонт/чищення носика бойлера", price:80},
+  {code:511, code2:2044, name:"Ремонт/чищення/встановлення клапану", price:115},
+  {code:512, code2:2045, name:"Ремонт/чищення/налаштування капучінатора", price:105},
+  {code:1709, code2:2048, name:"Фарбування суперавтомата", price:170},
+  {code:514, code2:2049, name:"Хімічна декальцинація", price:120},
+  {code:515, code2:2050, name:"Чищення блоку заварювання", price:90},
+  {code:2195, code2:2196, name:"Повне чищення блоку заварювання", price:155},
+  {code:1305, code2:2051, name:"Чищення бункера/контейнера/міксера суперавтомата", price:620},
+  {code:1707, code2:2052, name:"Чищення корпусу суперавтомата", price:210},
+  {code:519, code2:2053, name:"Встановлення/демонтаж(проф)", price:165},
+  {code:1309, code2:2054, name:"Діагностика професійної кавоварки", price:170},
+  {code:1310, code2:2056, name:"Заміна манометра", price:170},
+  {code:520, code2:2057, name:"Налаштування (проф)", price:150},
+  {code:523, code2:2060, name:"Повна декальцинація 1-постової машини", price:2100},
+  {code:522, code2:2061, name:"Повна декальцинація 2-постової машини", price:2600},
+  {code:1051, code2:2062, name:"Повна декальцинація 3-постової машини", price:3200},
+  {code:1881, code2:2064, name:"Ремонт/заміна/чищення трубок та лічильника води (проф)", price:155},
+  {code:1308, code2:2065, name:"Ремонт/чищення електорклапану (проф)", price:155},
+  {code:526, code2:2066, name:"Ремонт/чищення холдера", price:90},
+  {code:525, code2:2067, name:"Чищення групи заварювання", price:170}
 ];
 
 let total = 0;
@@ -309,10 +312,10 @@ const select = document.getElementById("service");
 select.innerHTML = "<option value='0'>Оберіть послугу</option>";
 services.forEach(s=>{
   const opt = document.createElement("option");
-  opt.value = s.price;
-  opt.textContent = s.code + " | " + s.name + " — " + s.price + " грн";
-  select.appendChild(opt);
-
+opt.value = s.price;
+opt.textContent = s.code + " | " + s.name + " — " + s.price + " грн";
+opt.style.color = "blek";
+select.appendChild(opt);
 });
 
 function addService(){
@@ -424,14 +427,28 @@ function searchMachine(){
     if(history.length === 0){
       html += "Немає записів";
     } else {
-     history.forEach(function(a, i){
+history.forEach(function(a, i){
 
-   html +=` 
-<div style="display:flex;justify-content:space-between;align-items:center;">
-<span>📅 ${a.date} — 💰 ${a.my} грн</span>
-<button onclick="deleteRepair('${sn}', ${i})"style="font-size:12px;padding:2px 6px;">❌</button>
-</div>
-`;
+  let worksList = "";
+
+  if(a.works){
+    a.works.forEach(function(w){
+      worksList += "• " + w.name + " (" + w.qty + " шт)<br>";
+    });
+  }
+
+  html += '<div onclick="openAct(\'' + sn + '\',' + i + ')" style="border:1px solid #ccc;margin:5px 0;padding:5px;cursor:pointer;">' +
+
+    '<div style="display:flex;justify-content:space-between;">' +
+      '<b>📅 ' + a.date + ' — 💰 ' + a.my + ' грн</b>' +
+      '<button onclick="event.stopPropagation(); deleteRepair(\'' + sn + '\',' + i + ')" style="font-size:12px;">❌</button>' +
+    '</div>' +
+
+    '<div style="margin-top:5px;font-size:14px;">' +
+      (worksList || "Немає даних") +
+    '</div>' +
+
+  '</div>';
 
 });
     }
@@ -526,6 +543,8 @@ function resetPayments(){
 
   payments = [];
   localStorage.setItem("payments", "[]");
+ localStorage.setItem("payments", JSON.stringify([]));
+payments = [];
 
   renderPayments();
   updateBalance();
@@ -648,7 +667,7 @@ codes.forEach(c => {
 
 let code = Number(c);
 
-let service = services.find(s => s.code === code);
+let service = services.find(s => s.code === code || s.code2 === code);
 
 if(service){
 
@@ -688,14 +707,88 @@ searchMachine();
 
 }
 
+function openAct(sn, index){
+
+let acts = JSON.parse(localStorage.getItem("acts") || "[]");
+
+let machineActs = acts.filter(a => a.machine === sn);
+
+let a = machineActs[index];
+
+if(!a) return;
+
+let worksList = "";
+
+if(a.works){
+  a.works.forEach(function(w){
+    worksList += "• " + w.name + " (" + w.qty + " шт)<br>";
+  });
+}
+
+let html =` 
+<h3>📄 Акт ремонту</h3>
+
+<b>Модель:</b> ${machines.find(m=>m.id===sn)?.model || "-"}<br>
+<b>Серійний №:</b> ${sn}<br>
+<b>Дата:</b> ${a.date}<br><br>
+
+<b>Роботи:</b><br>
+${worksList || "Немає даних"}<br><br>
+
+<b>Сума:</b> ${a.my} грн
+`;
+
+document.getElementById("actContent").innerHTML = html;
+document.getElementById("actModal").style.display = "flex";
+
+}
+
 renderPayments();
 updateBalance();
+
+function closeAct(){
+  document.getElementById("actModal").style.display = "none";
+}
 
 </script>
 
 <hr>
 <h3>📜 Історія цієї кавоварки</h3>
 <div id="machineHistory" style="padding:10px;background:#f5f5f5;"></div>
+
+<div id="actModal" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+z-index:999;
+">
+
+  <div style="
+  background:#fff;
+  padding:15px;
+  width:90%;
+  max-width:400px;
+  border-radius:10px;
+  max-height:80%;
+  overflow:auto;
+  ">
+
+    <div id="actContent"></div>
+
+    <button onclick="closeAct()" style="margin-top:10px;width:100%;">
+      Закрити
+    </button>
+
+  </div>
+
+</div>
+
 
 </body>
 </html>
