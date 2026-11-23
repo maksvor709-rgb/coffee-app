@@ -1,0 +1,15 @@
+{
+  "id": "./",
+  "name": "Coffee — облік ремонтів кавоварок",
+  "short_name": "Coffee",
+  "description": "Облік ремонтів та обслуговування кавоварок",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#111827",
+  "icons": [
+    { "src": "coffee-icon-192.png?v=20261123-2", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "coffee-icon-512.png?v=20261123-2", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
